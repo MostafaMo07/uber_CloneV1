@@ -1,24 +1,25 @@
-import 'package:cab_rider/brand_colors.dart';
+import 'dart:core';
+
 import 'package:cab_rider/screens/mainpage.dart';
 import 'package:cab_rider/widgets/ProgressDialog.dart';
 import 'package:cab_rider/widgets/TaxiButton.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'registrationpage.dart';
+import '../brand_colors.dart';
+import 'loginpage.dart';
 
-class LoginPage extends StatefulWidget {
-  static const String id = 'login';
+class RegistraionPage extends StatefulWidget {
+  static const String id = 'register';
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _RegistraionPageState createState() => _RegistraionPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegistraionPageState extends State<RegistraionPage> {
   final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
 
   void showSnackBar(String title) {
@@ -33,20 +34,25 @@ class _LoginPageState extends State<LoginPage> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  var fullNameController = TextEditingController();
+
   var emailController = TextEditingController();
+
+  var phoneController = TextEditingController();
 
   var passwordController = TextEditingController();
 
-  void login() async {
+  void registerUser() async {
     showDialog(
         context: context,
         builder: (BuildContext context) => ProgressDialog(
-              status: "Logging you In",
+              status: "Registering You...",
             ));
-
     final FirebaseUser user = (await _auth
-            .signInWithEmailAndPassword(
-                email: emailController.text, password: passwordController.text)
+            .createUserWithEmailAndPassword(
+      email: emailController.text,
+      password: passwordController.text,
+    )
             .catchError((ex) {
       //check error and display message
       Navigator.pop(context);
@@ -55,15 +61,20 @@ class _LoginPageState extends State<LoginPage> {
     }))
         .user;
 
+    //check if user registraion is successful
     if (user != null) {
-      DatabaseReference userRef =
+      DatabaseReference newUserRef =
           FirebaseDatabase.instance.reference().child("users/${user.uid}");
-      userRef.once().then((DataSnapshot snapshot) {
-        if (snapshot.value != null) {
-          Navigator.pushNamedAndRemoveUntil(
-              context, MainPage.id, (route) => false);
-        }
-      });
+
+      Map userMap = {
+        'fullname': fullNameController.text,
+        'email': emailController.text,
+        'phone': phoneController.text
+      };
+
+      newUserRef.set(userMap);
+      //Take user to mainPage
+      Navigator.pushNamedAndRemoveUntil(context, MainPage.id, (route) => false);
     }
   }
 
@@ -91,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 40,
                 ),
                 Text(
-                  "Sign In As a Rider",
+                  "Create a Rider's Account",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 25, fontFamily: 'Brand-Bold'),
                 ),
@@ -99,6 +110,21 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
+                      //Full Name
+                      TextField(
+                        controller: fullNameController,
+                        keyboardType: TextInputType.name,
+                        decoration: InputDecoration(
+                            labelText: 'Full Name',
+                            labelStyle: TextStyle(fontSize: 15.0),
+                            hintStyle:
+                                TextStyle(fontSize: 10, color: Colors.grey)),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+
+                      //Email Address
                       TextField(
                         controller: emailController,
                         keyboardType: TextInputType.emailAddress,
@@ -111,6 +137,22 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         height: 10,
                       ),
+
+                      //Phone
+                      TextField(
+                        controller: phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                            labelText: 'Phone Number',
+                            labelStyle: TextStyle(fontSize: 15.0),
+                            hintStyle:
+                                TextStyle(fontSize: 10, color: Colors.grey)),
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+
+                      //Password
                       TextField(
                         controller: passwordController,
                         obscureText: true,
@@ -124,9 +166,10 @@ class _LoginPageState extends State<LoginPage> {
                         height: 40,
                       ),
                       TaxiButton(
-                        title: 'LOGIN',
-                        color: BrandColors.colorGreen,
+                        title: 'REGISTER',
+                        color: BrandColors.colorAccentPurple,
                         onPressed: () async {
+                          //check network connectivity
                           var connectivityResult =
                               await Connectivity().checkConnectivity();
                           if (connectivityResult != ConnectivityResult.mobile &&
@@ -135,6 +178,14 @@ class _LoginPageState extends State<LoginPage> {
                             return;
                           }
 
+                          if (fullNameController.text.length < 3) {
+                            showSnackBar('Please Provide a valid Full Name');
+                            return;
+                          }
+                          if (phoneController.text.length < 10) {
+                            showSnackBar('Please Provide a valid Phone Number');
+                            return;
+                          }
                           if (!emailController.text.contains('@')) {
                             showSnackBar(
                                 'Please Provide a valid Email Address');
@@ -147,7 +198,7 @@ class _LoginPageState extends State<LoginPage> {
                             return;
                           }
 
-                          login();
+                          registerUser();
                         },
                       ),
                     ],
@@ -156,9 +207,9 @@ class _LoginPageState extends State<LoginPage> {
                 TextButton(
                   onPressed: () {
                     Navigator.pushNamedAndRemoveUntil(
-                        context, RegistraionPage.id, (route) => false);
+                        context, LoginPage.id, (route) => false);
                   },
-                  child: Text("Don\'t have an account, sign up here"),
+                  child: Text("Already have a Rider Account? Log In"),
                 )
               ],
             ),
