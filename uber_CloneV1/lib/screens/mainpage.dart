@@ -1,5 +1,7 @@
 import 'package:cab_rider/brand_colors.dart';
+import 'package:cab_rider/dataprovider/appdata.dart';
 import 'package:cab_rider/helpers/helpermethods.dart';
+import 'package:cab_rider/screens/searchpage.dart';
 import 'package:cab_rider/styles/styles.dart';
 import 'package:cab_rider/widgets/BrandDivider.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -8,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'package:outline_material_icons/outline_material_icons.dart';
+import 'package:provider/provider.dart';
 
 class MainPage extends StatefulWidget {
   static const String id = 'mainpage';
@@ -35,7 +38,8 @@ class _MainPageState extends State<MainPage> {
     CameraPosition cp = new CameraPosition(target: pos, zoom: 14);
     mapController.animateCamera(CameraUpdate.newCameraPosition(cp));
 
-    String address = await HelperMethods.findCordinateAddress(position);
+    String address =
+        await HelperMethods.findCordinateAddress(position, context);
     print(address);
   }
 
@@ -207,30 +211,38 @@ class _MainPageState extends State<MainPage> {
                     SizedBox(
                       height: 20,
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(4),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 5.0,
-                                spreadRadius: 0.5,
-                                offset: Offset(0.7, 0.7))
-                          ]),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.search,
-                              color: Colors.blueAccent,
-                            ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text("Search Destination"),
-                          ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SearchPage()));
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 5.0,
+                                  spreadRadius: 0.5,
+                                  offset: Offset(0.7, 0.7))
+                            ]),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.search,
+                                color: Colors.blueAccent,
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Text("Search Destination"),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -249,7 +261,14 @@ class _MainPageState extends State<MainPage> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Add Home"),
+                            Text(
+                              // (Provider.of<AppData>(context).pickupAddress !=
+                              //         null)
+                              //     ? Provider.of<AppData>(context)
+                              //         .pickupAddress
+                              //         .placeName
+                              'Add Home',
+                            ),
                             SizedBox(
                               height: 3,
                             ),
