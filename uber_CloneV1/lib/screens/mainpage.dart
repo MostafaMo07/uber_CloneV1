@@ -51,6 +51,8 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
 
   bool drawerCanOpen = true;
 
+  DatabaseReference rideRef;
+
   void setupPositionLocaotr() async {
     Position position = await geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.bestForNavigation);
@@ -82,6 +84,14 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       mapButtonPadding = (Platform.isAndroid) ? 240 : 230;
       drawerCanOpen = true;
     });
+
+    createRideRequest();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    HelperMethods.getCurrentUserInfo();
   }
 
   @override
@@ -544,19 +554,25 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                       SizedBox(
                         height: 20,
                       ),
-                      Container(
-                        height: 50,
-                        width: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(25),
-                          border: Border.all(
-                              width: 1.0,
-                              color: BrandColors.colorLightGrayFair),
-                        ),
-                        child: Icon(
-                          Icons.close,
-                          size: 25,
+                      GestureDetector(
+                        onTap: () {
+                          cancelRequest();
+                          resetApp();
+                        },
+                        child: Container(
+                          height: 50,
+                          width: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(25),
+                            border: Border.all(
+                                width: 1.0,
+                                color: BrandColors.colorLightGrayFair),
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: 25,
+                          ),
                         ),
                       ),
                       SizedBox(
@@ -696,6 +712,41 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
     });
   }
 
+  void createRideRequest() {
+    rideRef = FirebaseDatabase.instance.reference().child('rideRequest').push();
+    var pickup = Provider.of<AppData>(context, listen: false).pickupAddress;
+    var destination =
+        Provider.of<AppData>(context, listen: false).destinationAddress;
+
+    Map pickupMap = {
+      'latitude': pickup.latitude.toString(),
+      'longitude': pickup.longitude.toString(),
+    };
+
+    Map destinationMap = {
+      'latitude': destination.latitude.toString(),
+      'longitude': destination.longitude.toString(),
+    };
+
+    Map rideMap = {
+      'created_at': DateTime.now().toString(),
+      'rider_name': currentUserInfo.fullName,
+      'rider_phone': currentUserInfo.phone,
+      'pickup_address': pickup.placeName,
+      'destination_address': destination.placeName,
+      'location': pickupMap,
+      'destination': destinationMap,
+      'payment_method': 'card',
+      'driver_id': 'waiting',
+    };
+
+    rideRef.set(rideMap);
+  }
+
+  void cancelRequest() {
+    rideRef.remove();
+  }
+
   resetApp() {
     setState(() {
       polylineCordinates.clear();
@@ -703,6 +754,7 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       _markers.clear();
       _circles.clear();
       rideDetailsSheetHeight = 0;
+      requestingSheetHeight = 0;
       searchSheetHeight = (Platform.isIOS) ? 310 : 300;
       mapButtonPadding = (Platform.isAndroid) ? 240 : 230;
       drawerCanOpen = true;

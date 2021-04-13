@@ -1,14 +1,32 @@
 import 'package:cab_rider/datamodels/address.dart';
 import 'package:cab_rider/datamodels/directiondetails.dart';
+import 'package:cab_rider/datamodels/user.dart';
 import 'package:cab_rider/dataprovider/appdata.dart';
 import 'package:cab_rider/globalkey.dart';
 import 'package:cab_rider/helpers/requesthelper.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 class HelperMethods {
+  static void getCurrentUserInfo() async {
+    currentFirebaseUser = await FirebaseAuth.instance.currentUser();
+    String userid = currentFirebaseUser.uid;
+
+    DatabaseReference userRef =
+        FirebaseDatabase.instance.reference().child('users/$userid');
+
+    userRef.once().then((DataSnapshot snapshot) {
+      if (snapshot.value != null) {
+        currentUserInfo = User.fromSnapshot(snapshot);
+        print('My Name is ${currentUserInfo.fullName}');
+      }
+    });
+  }
+
   static Future<String> findCordinateAddress(Position position, context) async {
     String placeAddress = '';
     var connectivityResult = await Connectivity().checkConnectivity();
