@@ -1,9 +1,11 @@
 import 'package:cab_rider/datamodels/address.dart';
+import 'package:cab_rider/datamodels/directiondetails.dart';
 import 'package:cab_rider/dataprovider/appdata.dart';
 import 'package:cab_rider/globalkey.dart';
 import 'package:cab_rider/helpers/requesthelper.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 class HelperMethods {
@@ -32,5 +34,34 @@ class HelperMethods {
     }
 
     return placeAddress;
+  }
+
+  static Future<DirectionDetails> getDirectionDetails(
+      LatLng startPosition, LatLng endPosition) async {
+    String url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=${startPosition.latitude},${startPosition.longitude}&destination=${endPosition.latitude},${endPosition.longitude}&mode=driving&key=$mapKey';
+
+    var response = await RequestHelper.getRequest(url);
+
+    if (response == 'failed') {
+      return null;
+    }
+
+    DirectionDetails directionDetails = DirectionDetails();
+
+    directionDetails.durationText =
+        response['routes'][0]['legs'][0]['duration']['text'];
+    directionDetails.durationValue =
+        response['routes'][0]['legs'][0]['duration']['value'];
+
+    directionDetails.distanceText =
+        response['routes'][0]['legs'][0]['distance']['text'];
+    directionDetails.distanceValue =
+        response['routes'][0]['legs'][0]['distance']['value'];
+
+    directionDetails.encodedPoints =
+        response['routes'][0]['overview_polyline']['points'];
+
+    return directionDetails;
   }
 }
