@@ -34,7 +34,7 @@ class _SearchPageState extends State<SearchPage> {
   void searchPlace(String placeName) async {
     if (placeName.length > 1) {
       String url =
-          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$placeName&key=$mapKey&sessiontoken=123254251&components=country:ng';
+          'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$placeName&key=$mapKey&sessiontoken=123254251&components=country:eg';
       var response = await RequestHelper.getRequest(url);
 
       if (response == 'failed') {

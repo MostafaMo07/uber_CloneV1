@@ -64,4 +64,18 @@ class HelperMethods {
 
     return directionDetails;
   }
+
+  static int estimateFares(DirectionDetails details) {
+    // per km = 2 EGP
+    // per min = 1 EGP
+    // per fare = 3 EGP
+
+    double baseFare = 3;
+    double distanceFare = (details.distanceValue / 1000) * 2;
+    double timeFare = (details.durationValue / 60) * 1;
+
+    double totalFare = baseFare + distanceFare + timeFare;
+
+    return totalFare.truncate();
+  }
 }
